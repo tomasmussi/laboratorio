@@ -66,6 +66,7 @@ public class VistaBarra implements Observer
 		frameTemp.add(panelBotones, gbc);  //agregamos el panel al marco
 		
 		frameTemp.setSize(400,150);  //seteamos las dimensiones del marco
+		frameTemp.setResizable(false);		
 		frameTemp.setVisible(true);  //mostramos el marco
 
 		//agregamos el listener del evento de cerrado de la ventana		
