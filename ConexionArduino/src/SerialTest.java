@@ -14,7 +14,7 @@ public class SerialTest implements SerialPortEventListener {
 	private static final String PORT_NAMES[] = { 
 			"/dev/tty.usbserial-A9007UX1", // Mac OS X
                         "/dev/ttyACM0", // Raspberry Pi
-			"/dev/ttyUSB0", // Linux
+			"/dev/ttyACM0", // Linux
 			"COM3", // Windows
 	};
 	/**
@@ -33,7 +33,7 @@ public class SerialTest implements SerialPortEventListener {
 	public void initialize() {
                 // the next line is for Raspberry Pi and 
                 // gets us into the while loop and was suggested here was suggested http://www.raspberrypi.org/phpBB3/viewtopic.php?f=81&t=32186
-                System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
+		//System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
 
 		CommPortIdentifier portId = null;
 		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
@@ -70,6 +70,7 @@ public class SerialTest implements SerialPortEventListener {
 
 			// add event listeners
 			serialPort.addEventListener(this);
+			//serialPort.notifyOnDataAvailable(true);
 			serialPort.notifyOnDataAvailable(true);
 		} catch (Exception e) {
 			System.err.println(e.toString());
@@ -93,7 +94,12 @@ public class SerialTest implements SerialPortEventListener {
 	public synchronized void serialEvent(SerialPortEvent oEvent) {
 		if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
 			try {
-				String inputLine=input.readLine();
+				//String inputLine=input.readLine();
+				int c;
+				while ((c = serialPort.getInputStream().read()) != -1){
+					System.out.println((char)c);
+				}
+				String inputLine = "";
 				System.out.println(inputLine);
 			} catch (Exception e) {
 				System.err.println(e.toString());
@@ -103,7 +109,8 @@ public class SerialTest implements SerialPortEventListener {
 	}
 
 	public static void main(String[] args) throws Exception {
-		SerialTest main = new SerialTest();
+		System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
+		SerialTest main = new SerialTest();		
 		main.initialize();
 		Thread t=new Thread() {
 			public void run() {
