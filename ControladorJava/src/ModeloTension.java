@@ -7,21 +7,27 @@ import java.util.Enumeration;
 
 public class ModeloTension extends java.util.Observable {
 
-	private static final double INCREMENTO = 5;
-	private double tension = 20.0;
-	private double resistencia = 140; // Empieza con 140 ohms
+	private static final double INCREMENTO_TENSION = 5;
+	private static final int INCREMENTO_RESISTENCIA = 40; // 40 ohms es el minimo incremento
+	private double tension;
+	private double resistencia; // Empieza con 140 ohms
+	private static final double R1 = 220;
 	
     //Variables de conexión
     private OutputStream output = null;
     private SerialPort serialPort;
     private final String PUERTO="/dev/ttyACM0";
     
-    private static final int TIMEOUT=2000; //Milisegundos
+    private static final int TIMEOUT = 2000; //Milisegundos
     
     private static final int DATA_RATE=9600;
-	
+    
+    
     public ModeloTension() {
+    	resistencia = 140; // Empieza con 140 ohms
+    	calcularNuevaTension();
     	inicializarConexion();
+    	ActualizarObservadores();
     }
 	
 	public double getTension(){
@@ -32,15 +38,47 @@ public class ModeloTension extends java.util.Observable {
 		if (tension <= 0 || tension >= 30){
 			return;
 		}
-		this.tension = tension;
-		enviarNuevaResistencia();
+		double nuevaResistencia = calcularNuevaResistencia(tension);
+		boolean reemplazarResistencia = enviarNuevaResistencia(nuevaResistencia);
+		if (reemplazarResistencia) {
+			setResistencia(nuevaResistencia);
+			this.tension = tension;
+		}
 		ActualizarObservadores();
 	}
 	
-	private void enviarNuevaResistencia() {
+	private void setResistencia(double nuevaResistencia) {
+		resistencia = nuevaResistencia;
+		System.out.println("Nueva resistencia: " + resistencia);
+	}
+	
+	private double calcularNuevaResistencia(double tension) {
+		return ((tension / 1.25) - 1) * R1;
+	}
+	
+	private void calcularNuevaTension() {
+		tension = 1.25 * (1 + resistencia / R1);
+	}
+	
+	private boolean enviarNuevaResistencia(double nuevaResistencia) {
 		// Cada step de tension es de 40 ohms
-		enviarDatos("0");
-		System.out.println("Se envia un 0");
+		int cantidadNumeros = 0;
+		String numeroEnvio = "";
+		if (nuevaResistencia > resistencia) {
+			numeroEnvio = "1";
+		} else {
+			numeroEnvio = "0";
+		}
+		cantidadNumeros = cantidadNumerosEnviar(nuevaResistencia);
+		for (int i = 0; i < cantidadNumeros; i++) {
+			enviarDatos(numeroEnvio);
+			System.out.println("Se envia un " + numeroEnvio);
+		}
+		return cantidadNumeros != 0;
+	}
+	
+	public int cantidadNumerosEnviar(double nuevaResistencia) {
+		return (int) (Math.abs(nuevaResistencia - resistencia) / INCREMENTO_RESISTENCIA);
 	}
 
 	public void ActualizarObservadores() {
@@ -49,11 +87,11 @@ public class ModeloTension extends java.util.Observable {
 	}
 	
 	public void incrementar(){
-		setTension(this.tension + INCREMENTO);
+		setTension(this.tension + INCREMENTO_TENSION);
 	}
 	
 	public void decrementar(){
-		setTension(this.tension - INCREMENTO);
+		setTension(this.tension - INCREMENTO_TENSION);
 	}
 	
 	private void inicializarConexion(){

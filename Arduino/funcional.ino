@@ -60,11 +60,14 @@ void loop() {
       spi_out(CS_signal, cmd_byte2, valor);
     }
     else */
+    
     if (input=='1'){
-      resist_value = resist_value - 1;
+      resist_value = resist_value + 1;
+      Serial.println("RECIBIDO: " + input);
       spi_out(CS_signal, cmd_byte2, resist_value);
     }
     else if (input=='0'){
+      Serial.println("RECIBIDO: " + input);
       resist_value = resist_value - 1;
       spi_out(CS_signal, cmd_byte2, resist_value);
     }
