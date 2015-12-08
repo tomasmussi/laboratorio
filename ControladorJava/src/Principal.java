@@ -1,6 +1,7 @@
 public class Principal 
 {	public static void main(String args[]) 
-	{	
+	{
+		System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
 		// creamos el modelo
 		ModeloTension temperatura = new ModeloTension();
 		// creamos el controlador que atiende a las vistas
